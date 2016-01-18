@@ -1,37 +1,116 @@
 'use strict';
+import {Link} from 'react-router'
+import React from 'react'
+import Auth from '../components/auth'
+import Socket from '../components/socket'
+import classNames from 'classnames'
 
-var React = require('react');
+var UsersListItem = React.createClass({
+	handleClick: function (event) {
+		this.props.handleToggleBanUser({user: this.props.name, banned: this.props.ban});
+	},
+	render(){
+		var addBanClass = classNames({
+			'hidden': (this.props.ban ? true : false)
+		});
+		var addListClass = classNames({
+			'hidden': (this.props.ban ? false : true)
+		});
 
-var socket = io.connect();
-
-var UsersList = React.createClass({
-	render() {
 		return (
-			<article>
-				<h3> Online Users: </h3>
-				<ul className="list-group">
-					{
-						this.props.users.map((user, i) => {
-							return (
-								<li className="list-group-item" key={i}>
-									{user}
+		  <div>
+			  <Link className="chat-userpick" to={this.props.url} activeClassName="active" onlyActiveOnIndex={true}>
+				  <div className="userpick-badge">{this.props.badge}</div>
+				  <div className="userpick-name">{this.props.name}</div>
+			  </Link>
+			  <button type="button" className={addBanClass} onClick={this.handleClick}>x</ button >
+			  <button type="button" className={addListClass} onClick={this.handleClick}>+</ button >
+		  </div>
+		)
+	}
+});
+var Aside = React.createClass({
+	render() {
+		var banListClass = classNames({
+			'hidden': (this.props.bannedUsers.length === 0)
+		});
+
+		return (
+		  <aside>
+			  <header>
+				  <div className="chat-userpick">
+					  <div className="userpick-badge">2</div>
+					  <div className="userpick-name">{this.props.user}</div>
+				  </div>
+				  <Link to={'/login'}>Выйти</Link>
+			  </header>
+
+			  <ul className="user-list">
+				  <li className="all-users">
+					  <UsersListItem
+						name="Все участники"
+						badge={this.props.users.length - 1}
+						url="/chat"
+					  />
+				  </li>
+				  {
+					  this.props.users.map((user, i) => {
+						  if (user.name !== Auth.getUser()) {
+							  return (
+								<li key={i}>
+									<UsersListItem
+									  name={user.name}
+									  badge={i}
+									  handleToggleBanUser={this.props.handleToggleBanUser}
+									  url={`/chat/${user.name}`}
+									/>
 								</li>
-							);
-						})
-					}
-				</ul>
-			</article>
+							  );
+						  }
+					  })
+				  }
+			  </ul>
+
+			  <div className={banListClass}>
+				  <div>Исключения</div>
+				  <ul className="ban-list">
+					  {
+						  this.props.bannedUsers.map((user, i) => {
+							  return (
+								<li key={i}>
+									<UsersListItem
+									  name={user.name}
+									  badge={i}
+									  url={`/chat/${user.name}`}
+									  handleToggleBanUser={this.props.handleToggleBanUser}
+									  ban="true"
+									/>
+								</li>
+							  );
+						  })
+					  }
+				  </ul>
+			  </div>
+		  </aside>
 		);
 	}
 });
 
 var Message = React.createClass({
+	componentDidMount() {
+		window.scrollTo(0, document.body.scrollHeight);
+	},
+	addToField(){
+		this.props.updateMessageField([this.props.user, ','].join());
+	},
 	render() {
 		return (
-			<div>
-				<strong>{this.props.user} :</strong>
-				<span>{this.props.text}</span>
-			</div>
+		  <li>
+			  <label className="sadasd" htmlFor="message-field" onClick={this.addToField}>
+				  <strong>{this.props.user} :</strong>
+				  <span>{this.props.text}</span>
+			  </label>
+		  </li>
 		);
 	}
 });
@@ -39,20 +118,20 @@ var Message = React.createClass({
 var MessageList = React.createClass({
 	render() {
 		return (
-			<div className="panel-body">
-				<h2> Conversation: </h2>
-				{
-					this.props.messages.map((message, i) => {
-						return (
-							<Message
-								key={i}
-								user={message.user}
-								text={message.text}
-							/>
-						);
-					})
-				}
-			</div>
+		  <ul className="chat-messages">
+			  {
+				  this.props.messages.map((message, i) => {
+					  return (
+						<Message
+						  key={i}
+						  user={message.user}
+						  text={message.text}
+						  updateMessageField={this.props.updateMessageField}
+						/>
+					  );
+				  })
+			  }
+		  </ul>
 		);
 	}
 });
@@ -62,7 +141,6 @@ var MessageForm = React.createClass({
 	getInitialState() {
 		return {text: ''};
 	},
-
 	handleSubmit(e) {
 		e.preventDefault();
 		var message = {
@@ -79,163 +157,150 @@ var MessageForm = React.createClass({
 
 	render() {
 		return (
-			<article className="panel-footer clearfix">
-				<form onSubmit={this.handleSubmit}>
-					<label>Message:</label>
-					<input
-						onChange={this.changeHandler}
-						className='form-control'
-						value={this.state.text}
-					/>
-					<button type='submit' className='btn btn-default pull-right'>Submit</button>
-				</form>
-			</article>
+		  <article className="chat-form">
+			  <form onSubmit={this.handleSubmit}>
+				  <input
+					id={this.props.messageFieldId}
+					onChange={this.changeHandler}
+					className='form-control'
+					value={this.state.text}
+					autoComplete="off"
+					autoFocus
+				  />
+			  </form>
+		  </article>
 		);
 	}
 });
 
-var ChangeNameForm = React.createClass({
+var Chat = React.createClass({
 	getInitialState() {
-		return {newName: ''};
-	},
-
-	onKey(e) {
-		this.setState({newName: e.target.value});
-	},
-
-	handleSubmit(e) {
-		e.preventDefault();
-		var newName = this.state.newName;
-		this.props.onChangeName(newName);
-		this.setState({newName: ''});
-	},
-
-	render() {
-		return (
-			<article className="panel-heading">
-				<form onSubmit={this.handleSubmit}>
-					<div className='form-group'>
-						<label>Change name</label>
-
-						<input
-							className='form-control'
-							onChange={this.onKey}
-							value={this.state.newName}
-						/>
-
-					</div>
-				</form>
-			</article>
-		);
-	}
-});
-
-var ChatApp = React.createClass({
-
-	getInitialState() {
-		return {users: [], messages: [], text: ''};
+		return {
+			users: [],
+			bannedUsers: [],
+			messages: [],
+			text: '',
+			user: Auth.getUser(),
+			messageFieldId: 'message-field'
+		};
 	},
 
 	componentDidMount() {
-		socket.on('init', this._initialize);
-		socket.on('send:message', this._messageRecieve);
-		socket.on('user:join', this._userJoined);
-		socket.on('user:left', this._userLeft);
-		socket.on('change:name', this._userChangedName);
-	},
+		var data = {user: this.state.user, receiver: this.props.params.receiver};
+		Socket.io.emit('chat:init', data, (res)=> {
+			let {users, messages, bannedUsers} = res;
+			this.setState({users, messages, bannedUsers});
+		});
 
-	_initialize(data) {
-		var {users, name} = data;
-		this.setState({users, user: name});
-	},
+		Socket.io.on('send:message', this._messageRecieve);
+		Socket.io.on('user:join', this._userJoined);
+		Socket.io.on('user:left', this._userLeft);
 
+	},
+	componentWillUnmount(){
+		Socket.io.off('send:message');
+		Socket.io.off('user:join');
+		Socket.io.off('user:left');
+	},
+	componentWillReceiveProps: function (nextProps) {
+		this._getMessages(nextProps.params.receiver);
+	},
 	_messageRecieve(message) {
 		var {messages} = this.state;
 		messages.push(message);
 		this.setState({messages});
 	},
-
+	_isBannedUser(user){
+		if (this.state.bannedUsers.indexOf(user) === -1) {
+			return false;
+		} else {
+			return true;
+		}
+	},
 	_userJoined(data) {
 		var {users, messages} = this.state;
-		var {name} = data;
-		users.push(name);
+		var {user} = data;
+
+		if (this._isBannedUser(user)) return;
+
 		messages.push({
 			user: 'APPLICATION BOT',
-			text: name + ' Joined'
+			text: user + ' Joined'
 		});
 		this.setState({users, messages});
 	},
-
 	_userLeft(data) {
+		if (!this.state.user) return;
+
 		var {users, messages} = this.state;
-		var {name} = data;
-		var index = users.indexOf(name);
-		users.splice(index, 1);
+		var {user} = data;
+
+		if (this._isBannedUser(user)) return;
+
 		messages.push({
 			user: 'APPLICATION BOT',
-			text: name + ' Left'
+			text: user + ' Left'
 		});
 		this.setState({users, messages});
 	},
-
-	_userChangedName(data) {
-		var {oldName, newName} = data;
-		var {users, messages} = this.state;
-		var index = users.indexOf(oldName);
-		users.splice(index, 1, newName);
-		messages.push({
-			user: 'APPLICATION BOT',
-			text: 'Change Name : ' + oldName + ' ==> ' + newName
+	_getMessages(receiver){
+		var data = {sender: this.state.user, receiver: receiver};
+		Socket.io.emit('chat:messages', data, (res)=> {
+			let {messages} = res;
+			this.setState({messages});
 		});
-		this.setState({users, messages});
 	},
-
 	handleMessageSubmit(message) {
 		var {messages} = this.state;
 		messages.push(message);
 		this.setState({messages});
-		socket.emit('send:message', message);
-	},
 
-	handleChangeName(newName) {
-		var oldName = this.state.user;
-		socket.emit('change:name', {name: newName}, (result) => {
-			if (!result) {
-				return alert('There was an error changing your name');
-			}
-			var {users} = this.state;
-			var index = users.indexOf(oldName);
-			users.splice(index, 1, newName);
-			this.setState({users, user: newName});
+		Socket.io.emit('send:message', {
+			text: message.text,
+			sender: this.state.user,
+			receiver: this.props.params.receiver
 		});
 	},
+	handleToggleBanUser(data) {
+		data.receiver = this.props.params.receiver;
+		Socket.io.emit('user:togglebanned', data, (res)=> {
+			let {bannedUsers, users, messages} = res;
 
-	render() {
-		return (
+			this.setState({bannedUsers, users, messages});
+		});
+	},
+	messageField(){
+		return document.getElementById(this.state.messageFieldId);
+	},
+	updateMessageField(appeal){
+		this.messageField().value = appeal;
+	},
 
-			<div >
-				<UsersList
-					users={this.state.users}
-				/>
-				<section className="panel panel-default">
+	addMessageField(){
 
-					<ChangeNameForm
-						onChangeName={this.handleChangeName}
-					/>
+	},
+	render () {
+		return <section className="chat">
+			<Aside
+			  user={this.state.user}
+			  users={this.state.users}
+			  bannedUsers={this.state.bannedUsers}
+			  handleToggleBanUser={this.handleToggleBanUser}
+			/>
 
-					<MessageList
-						messages={this.state.messages}
-					/>
+			<MessageList
+			  updateMessageField={this.updateMessageField}
+			  messages={this.state.messages}
+			/>
 
-					<MessageForm
-						user={this.state.user}
-						onMessageSubmit={this.handleMessageSubmit}
-					/>
-
-				</section>
-			</div>
-		);
+			<MessageForm
+			  user={this.state.user}
+			  onMessageSubmit={this.handleMessageSubmit}
+			  messageFieldId={this.state.messageFieldId}
+			/>
+		</section>
 	}
 });
 
-React.render(<ChatApp/>, document.getElementById('app'));
+
+export default Chat;

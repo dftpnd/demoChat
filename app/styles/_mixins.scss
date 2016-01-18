@@ -1,0 +1,9 @@
+@mixin default-link() {
+    font-size: 1.4rem;
+    color: $link-color;
+    text-decoration: underline;
+    cursor: pointer;
+    &:hover {
+        text-decoration: none;
+    }
+}

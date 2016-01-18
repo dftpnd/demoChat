@@ -1,0 +1,30 @@
+html {
+    font-size: 62.5%; // 1rem === 10px
+    font-family: $text-font;
+    color: $text-color;
+}
+
+body,
+input,
+textarea,
+button {
+    font-size: $text-size;
+    font-family: $text-font;
+    line-height: $text-height;
+}
+
+::-webkit-input-placeholder {
+    color: $placeholder-color;
+}
+
+::-moz-placeholder {
+    color: $placeholder-color;
+}
+
+:placeholder-shown {
+    color: $placeholder-color;
+}
+
+a {
+    @include default-link ();
+}

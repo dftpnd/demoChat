@@ -1,0 +1,138 @@
+.chat {
+    position: relative;
+    width: $chat-width;
+    margin: 0 auto;
+    height: 100%;
+
+    aside {
+        position: fixed;
+        width: $chat-sidebar-width;
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 25px;
+            padding-left: 11px;
+        }
+        .user-list {
+            padding-bottom: 25px;
+        }
+        li {
+            display: block;
+            position: relative;
+
+            &:not(:last-child)::after {
+                content: '';
+                position: absolute;
+                display: block;
+                height: 2px;
+                bottom: 0;
+                left: 10px;
+                right: 0;
+                background: blue;
+            }
+
+            button {
+                border: 1px solid black;
+                background: none;
+                position: absolute;
+                z-index: 1;
+                top: 10px;
+                right: 10px;
+            }
+            .chat-userpick {
+                padding: 11px 20px 11px 11px;
+            }
+        }
+
+        .all-users {
+            button {
+                display: none;
+            }
+            .chat-userpick {
+                padding-right: 11px;
+                .userpick-name {
+                    font-weight: bold;
+                    color: $text-color;
+
+                }
+            }
+        }
+        .chat-userpick {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+
+            border-top-left-radius: 3px;
+            border-bottom-left-radius: 3px;
+
+            &.active {
+                background: #e0e7eb;
+            }
+
+            .userpick-badge {
+                width: 19px;
+                height: 19px;
+                border-radius: 3px;
+                font-size: 1.2rem;
+                border: 1px solid black;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .userpick-name {
+                padding-left: 6px;
+                font-size: 1.6rem;
+
+                white-space: nowrap;
+                display: block;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                flex: 0 1 auto;
+            }
+
+        }
+
+    }
+
+    .chat-messages,
+    .chat-form {
+        border-left: 1px solid black;
+        border-right: 1px solid black;
+        margin-left: $chat-sidebar-width;
+    }
+    .chat-messages {
+        padding-bottom: $chat-form-height;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+
+        li {
+            display: block;
+        }
+    }
+
+    .chat-form {
+        position: fixed;
+        bottom: 0;
+        height: $chat-form-height;
+        width: $chat-content-width;
+        background: red;
+        padding: 0 10px;
+        display: flex;
+        align-items: stretch;
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1 100%;
+        }
+        input {
+            flex: 1 100%;
+            display: block;
+        }
+    }
+}

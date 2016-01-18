@@ -1,4 +1,7 @@
-$icon-font-path: "/fonts/bootstrap/";
-@import "bootstrap-sass-official/assets/stylesheets/bootstrap";
-
-
+@import "variables";
+@import "mixins";
+@import "base";
+@import "typography";
+//components
+@import "componets/login-form";
+@import "componets/chat";
