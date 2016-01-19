@@ -45,22 +45,23 @@ var Message = function () {
 
 	function getList (currentUser, receiver, bannedUsers) {
 		var listMessages = [];
-		for (var user in messages) {
-			messages[user].forEach(function (message) {
-				if (!isBanned(bannedUsers, user)) {
-					if (
-					  (!receiver)
-					  ||
-					  (message.user === currentUser && message.receiver === receiver)
-					  ||
-					  (message.user === receiver && message.receiver === currentUser)
-					) {
+		for (var userName in messages) {
+			messages[userName].forEach(function (message) {
+				if (!isBanned(bannedUsers, userName)) {
+					if (!receiver) {
+						if (!message.receiver) {
+							listMessages.push(message);
+						} else if (message.user === currentUser || message.receiver === currentUser) {
+							listMessages.push(message);
+						}
+					} else if (message.user === currentUser && message.receiver === receiver) {
+						listMessages.push(message);
+					} else if (message.user === receiver && message.receiver === currentUser) {
 						listMessages.push(message);
 					}
 				}
 			});
 		}
-
 		return listMessages.sort(compare);
 	};
 
