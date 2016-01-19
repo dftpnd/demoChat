@@ -6,6 +6,14 @@ var User = function () {
 	var users = {};
 	var bannedUsers = {};
 
+	function updateSocket (name, socketId) {
+		for (var userName in users) {
+			if (users[userName].name === name) {
+				users[userName].id = socketId;
+			}
+		}
+	}
+
 	function claim (user, socketId) {
 		if (!user || users[user]) {
 			return false;
@@ -27,7 +35,7 @@ var User = function () {
 		if (!banList) banList = {};
 
 		for (var user in users) {
-			if (banList && !banList.hasOwnProperty(user)) {
+			if (users[user].hasOwnProperty('id') && banList && !banList.hasOwnProperty(user)) {
 				res.push(users[user])
 			}
 		}
@@ -41,7 +49,7 @@ var User = function () {
 			if (users[name].id === socketId)user = name;
 
 		if (users[user])
-			delete users[user];
+			delete users[user].id;
 
 		return user;
 	};
@@ -54,10 +62,19 @@ var User = function () {
 		return socketId;
 	};
 
-	function getUser (socketId) {
+
+	function getUserName (socketId) {
 		var res = null;
 		for (var user in users)
 			if (users[user].id === socketId)res = user;
+
+		return res;
+	};
+
+	function getUser (socketId) {
+		var res = null;
+		for (var user in users)
+			if (users[user].id === socketId)res = users[user];
 
 		return res;
 	};
@@ -108,6 +125,8 @@ var User = function () {
 		getList: getList,
 		getBannedUserList: getBannedUserList,
 		getUser: getUser,
+		getUserName: getUserName,
+		updateSocket: updateSocket,
 		toggleBanned: toggleBanned
 	};
 };

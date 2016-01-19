@@ -23,21 +23,21 @@ Auth.prototype.login = function (user, cb) {
 				localStorage.user = loginUser;
 				this.user = loginUser;
 				if (cb) cb(true);
-				this.onChange(true);
 			} else {
 				if (cb) cb(false);
-				this.onChange(false);
 			}
 		});
 	}
 };
 
 Auth.prototype.logout = function (cb) {
+	if(!this.user) return;
+
 	if (cb) cb();
+
 	Socket.io.emit('logout', {user: this.user});
 	delete localStorage.user;
 	this.user = '';
-	this.onChange(false);
 };
 
 Auth.prototype.loggedIn = function () {
@@ -46,10 +46,6 @@ Auth.prototype.loggedIn = function () {
 
 Auth.prototype.getUser = function () {
 	return this.user;
-};
-
-Auth.prototype.onChange = function () {
-
 };
 
 module.exports = new Auth();

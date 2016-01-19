@@ -4,6 +4,40 @@
     margin: 0 auto;
     height: 100%;
 
+    .user-pick {
+        display: flex;
+        align-items: center;
+
+        .userpick-badge {
+            border-radius: 5px;
+            font-size: 1.2rem;
+            color: #fff;
+            span {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-transform: uppercase;
+                width: 19px;
+                height: 19px;
+            }
+        }
+
+        .userpick-name {
+            padding-left: 6px;
+            font-size: 1.6rem;
+
+            white-space: nowrap;
+            display: block;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            flex: 1 100%;
+        }
+
+        .userpick-name:first-letter {
+            text-transform: uppercase;
+        }
+    }
+
     aside {
         position: fixed;
         width: $chat-sidebar-width;
@@ -11,11 +45,20 @@
         header {
             display: flex;
             justify-content: space-between;
-            padding-bottom: 25px;
-            padding-left: 11px;
+            padding:  25px 11px;
         }
         .user-list {
             padding-bottom: 25px;
+        }
+        .ban-list {
+            .userpick-badge {
+                background: #ccced0 !important;
+                color: #fff;
+            }
+            .userpick-name {
+                color: #b9bbbd;
+            }
+
         }
         li {
             display: block;
@@ -29,22 +72,27 @@
                 bottom: 0;
                 left: 10px;
                 right: 0;
-                background: blue;
+                background: #ebf0f3;
             }
 
-            button {
-                border: 1px solid black;
+            .chat-userpick {
+                padding: 11px 20px 11px 11px;
+            }
+            .btn-toggle {
                 background: none;
+                border: none;
+                cursor: pointer;
                 position: absolute;
                 z-index: 1;
                 top: 10px;
                 right: 10px;
-            }
-            .chat-userpick {
-                padding: 11px 20px 11px 11px;
+                color: #8e9296;
             }
         }
-
+        .list-title {
+            font-size: 12px;
+            padding-left: 20px;
+        }
         .all-users {
             button {
                 display: none;
@@ -54,43 +102,27 @@
                 .userpick-name {
                     font-weight: bold;
                     color: $text-color;
-
+                }
+                .userpick-badge {
+                    border: 1px solid #c7cbce;
+                    background: #fff;
+                    span {
+                        width: 18px;
+                        height: 18px;
+                        color: $text-color;
+                    }
                 }
             }
         }
         .chat-userpick {
+            display: block;
             width: 100%;
-            display: flex;
-            align-items: center;
             text-decoration: none;
-
             border-top-left-radius: 3px;
             border-bottom-left-radius: 3px;
 
             &.active {
                 background: #e0e7eb;
-            }
-
-            .userpick-badge {
-                width: 19px;
-                height: 19px;
-                border-radius: 3px;
-                font-size: 1.2rem;
-                border: 1px solid black;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-
-            .userpick-name {
-                padding-left: 6px;
-                font-size: 1.6rem;
-
-                white-space: nowrap;
-                display: block;
-                text-overflow: ellipsis;
-                overflow: hidden;
-                flex: 0 1 auto;
             }
 
         }
@@ -99,19 +131,77 @@
 
     .chat-messages,
     .chat-form {
-        border-left: 1px solid black;
-        border-right: 1px solid black;
+        border-left: 1px solid $border-color;
+        border-right: 1px solid $border-color;
         margin-left: $chat-sidebar-width;
     }
     .chat-messages {
+        background: #fff;
         padding-bottom: $chat-form-height;
         min-height: 100%;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
+        position: relative;
 
+        ul {
+            position: relative;
+        }
+        ul:after {
+            content: '';
+            display: block;
+            background: #fff;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1;
+        }
         li {
             display: block;
+            padding-left: 15px;
+            position: relative;
+            z-index: 2;
+            &:after {
+                content: '';
+                display: block;
+                float: none;
+                clear: both;
+            }
+            .bg-message {
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                z-index: 1;
+                opacity: .1;
+            }
+            label {
+                display: block;
+                position: relative;
+                z-index: 2;
+            }
+        }
+
+        .chat-item-message {
+            .user-pick {
+                float: left;
+                margin-top: 2px;
+            }
+            .chat-message-text {
+                font-size: 1.6rem;
+                padding-left: 9px;
+            }
+        }
+        .chat-bg {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            opacity: .1;
         }
     }
 
@@ -120,19 +210,51 @@
         bottom: 0;
         height: $chat-form-height;
         width: $chat-content-width;
-        background: red;
-        padding: 0 10px;
+        border-top: 1px solid $border-color;
+        padding: 0 15px;
         display: flex;
         align-items: stretch;
+        background: #fff;
+
+        .user-bg {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            opacity: 0.1;
+        }
+
         form {
+            position: relative;
+            z-index: 2;
             display: flex;
             justify-content: center;
             align-items: center;
             flex: 1 100%;
         }
+
+        .user-preview {
+            display: flex;
+            span {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-right: 5px;
+                width: 19px;
+                height: 19px;
+                text-transform: uppercase;
+                font-size: 1.2rem;
+                border-radius: 4px;
+                color: #fff;
+            }
+        }
         input {
             flex: 1 100%;
             display: block;
+            line-height: 23px;
+            font-size: 1.4rem;
         }
     }
+
 }

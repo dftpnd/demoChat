@@ -32,13 +32,22 @@ var Message = function () {
 			return 0;
 	};
 
+	function isBanned (bannedUsers, name) {
+		var res = false;
+		bannedUsers.forEach(function (user) {
+			if (user.name === name) {
+				res = true;
+				return;
+			}
+		});
+		return res;
+	}
 
 	function getList (currentUser, receiver, bannedUsers) {
 		var listMessages = [];
-
 		for (var user in messages) {
 			messages[user].forEach(function (message) {
-				if (bannedUsers.indexOf(user) === -1) {
+				if (!isBanned(bannedUsers, user)) {
 					if (
 					  (!receiver)
 					  ||
@@ -51,7 +60,6 @@ var Message = function () {
 				}
 			});
 		}
-
 
 		return listMessages.sort(compare);
 	};

@@ -5,26 +5,45 @@ import Auth from '../components/auth'
 import Socket from '../components/socket'
 import classNames from 'classnames'
 
+var UserPick = React.createClass({
+	render(){
+		var userpickBadge = {
+			background: this.props.color
+		};
+
+		return (
+		  <div className="user-pick">
+			  <div style={userpickBadge} className="userpick-badge"><span>{this.props.badge}</span></div>
+			  <div className="userpick-name">{this.props.name}</div>
+		  </div>
+		)
+	}
+});
 var UsersListItem = React.createClass({
 	handleClick: function (event) {
 		this.props.handleToggleBanUser({user: this.props.name, banned: this.props.ban});
 	},
 	render(){
 		var addBanClass = classNames({
+			'btn-toggle': true,
 			'hidden': (this.props.ban ? true : false)
 		});
 		var addListClass = classNames({
+			'btn-toggle': true,
 			'hidden': (this.props.ban ? false : true)
 		});
 
+
 		return (
 		  <div>
-			  <Link className="chat-userpick" to={this.props.url} activeClassName="active" onlyActiveOnIndex={true}>
-				  <div className="userpick-badge">{this.props.badge}</div>
-				  <div className="userpick-name">{this.props.name}</div>
+			  <Link className="chat-userpick"
+					to={this.props.url}
+					activeClassName="active"
+					onlyActiveOnIndex={true}>
+				  <UserPick badge={this.props.badge} name={this.props.name} color={this.props.color}/>
 			  </Link>
-			  <button type="button" className={addBanClass} onClick={this.handleClick}>x</ button >
-			  <button type="button" className={addListClass} onClick={this.handleClick}>+</ button >
+			  <button className={addBanClass} onClick={this.handleClick} type="button">x</ button >
+			  <button className={addListClass} onClick={this.handleClick} type="button">+</ button >
 		  </div>
 		)
 	}
@@ -38,10 +57,7 @@ var Aside = React.createClass({
 		return (
 		  <aside>
 			  <header>
-				  <div className="chat-userpick">
-					  <div className="userpick-badge">2</div>
-					  <div className="userpick-name">{this.props.user}</div>
-				  </div>
+				  <UserPick badge={this.props.user.charAt(0)} name={this.props.user} color={this.props.userColor}/>
 				  <Link to={'/login'}>Выйти</Link>
 			  </header>
 
@@ -60,9 +76,10 @@ var Aside = React.createClass({
 								<li key={i}>
 									<UsersListItem
 									  name={user.name}
-									  badge={i}
+									  badge={user.name.charAt(0)}
 									  handleToggleBanUser={this.props.handleToggleBanUser}
 									  url={`/chat/${user.name}`}
+									  color={user.color}
 									/>
 								</li>
 							  );
@@ -72,7 +89,7 @@ var Aside = React.createClass({
 			  </ul>
 
 			  <div className={banListClass}>
-				  <div>Исключения</div>
+				  <div className="list-title">Исключения</div>
 				  <ul className="ban-list">
 					  {
 						  this.props.bannedUsers.map((user, i) => {
@@ -80,10 +97,11 @@ var Aside = React.createClass({
 								<li key={i}>
 									<UsersListItem
 									  name={user.name}
-									  badge={i}
+									  badge={user.name.charAt(0)}
 									  url={`/chat/${user.name}`}
 									  handleToggleBanUser={this.props.handleToggleBanUser}
 									  ban="true"
+									  color={user.color}
 									/>
 								</li>
 							  );
@@ -101,14 +119,22 @@ var Message = React.createClass({
 		window.scrollTo(0, document.body.scrollHeight);
 	},
 	addToField(){
-		this.props.updateMessageField([this.props.user, ','].join());
+		this.props.updateMessageField([this.props.user, ', '].join(''));
 	},
 	render() {
+		var messageBgClass = classNames({
+			'bg-message': true,
+			'hidden': (this.props.receiver ? false : true)
+		});
+		var messageColor = {
+			background: this.props.color
+		};
 		return (
 		  <li>
-			  <label className="sadasd" htmlFor="message-field" onClick={this.addToField}>
-				  <strong>{this.props.user} :</strong>
-				  <span>{this.props.text}</span>
+			  <div style={messageColor} className={messageBgClass}></div>
+			  <label className="chat-item-message" htmlFor="message-field" onClick={this.addToField}>
+				  <UserPick badge={this.props.user.charAt(0)} name={this.props.user} color={this.props.color}/>
+				  <span className="chat-message-text">{this.props.text}</span>
 			  </label>
 		  </li>
 		);
@@ -117,21 +143,29 @@ var Message = React.createClass({
 
 var MessageList = React.createClass({
 	render() {
+		var viewColor = {
+			background: this.props.chatColor
+		};
 		return (
-		  <ul className="chat-messages">
-			  {
-				  this.props.messages.map((message, i) => {
-					  return (
-						<Message
-						  key={i}
-						  user={message.user}
-						  text={message.text}
-						  updateMessageField={this.props.updateMessageField}
-						/>
-					  );
-				  })
-			  }
-		  </ul>
+		  <div className="chat-messages">
+			  <div style={viewColor} className="chat-bg"></div>
+			  <ul>
+				  {
+					  this.props.messages.map((message, i) => {
+						  return (
+							<Message
+							  key={i}
+							  user={message.user}
+							  text={message.text}
+							  receiver={message.receiver}
+							  color={this.props.getUserColor(message.user)}
+							  updateMessageField={this.props.updateMessageField}
+							/>
+						  );
+					  })
+				  }
+			  </ul>
+		  </div>
 		);
 	}
 });
@@ -156,15 +190,24 @@ var MessageForm = React.createClass({
 	},
 
 	render() {
+		var userBg = {
+			background: this.props.userColor
+		};
 		return (
 		  <article className="chat-form">
+			  <div className="user-bg" style={userBg}></div>
 			  <form onSubmit={this.handleSubmit}>
+				  <div className="user-preview">
+					  <span style={userBg}>{this.props.user.charAt(0)}</span>
+				  </div>
 				  <input
 					id={this.props.messageFieldId}
 					onChange={this.changeHandler}
 					className='form-control'
 					value={this.state.text}
 					autoComplete="off"
+					type="text"
+					placeholder="Напишите сообщение"
 					autoFocus
 				  />
 			  </form>
@@ -181,21 +224,17 @@ var Chat = React.createClass({
 			messages: [],
 			text: '',
 			user: Auth.getUser(),
-			messageFieldId: 'message-field'
+			messageFieldId: 'message-field',
+			userColor: '',
+			chatColor: '',
 		};
 	},
 
 	componentDidMount() {
-		var data = {user: this.state.user, receiver: this.props.params.receiver};
-		Socket.io.emit('chat:init', data, (res)=> {
-			let {users, messages, bannedUsers} = res;
-			this.setState({users, messages, bannedUsers});
-		});
-
 		Socket.io.on('send:message', this._messageRecieve);
 		Socket.io.on('user:join', this._userJoined);
 		Socket.io.on('user:left', this._userLeft);
-
+		this._update(true);
 	},
 	componentWillUnmount(){
 		Socket.io.off('send:message');
@@ -204,44 +243,74 @@ var Chat = React.createClass({
 	},
 	componentWillReceiveProps: function (nextProps) {
 		this._getMessages(nextProps.params.receiver);
+		this._updateChatColor(nextProps.params.receiver);
+	},
+	_update: function (init, callback) {
+		var data = {user: this.state.user, receiver: this.props.params.receiver, init: init};
+		Socket.io.emit('chat:init', data, (res)=> {
+			let {users, messages, bannedUsers} = res;
+			this.setState({users, messages, bannedUsers});
+			this._updateChatColor(this.props.params.receiver);
+
+			users.forEach((user)=> {
+				if (user.name === this.state.user) {
+					this.setState({userColor: user.color});
+				}
+			});
+
+			if (callback)
+				callback(res);
+		});
+	},
+	_updateChatColor(user){
+		var color = this.getUserColor(user);
+		this.setState({chatColor: color});
 	},
 	_messageRecieve(message) {
+		if (this._isBannedUser(message.user)) return;
+
 		var {messages} = this.state;
 		messages.push(message);
 		this.setState({messages});
 	},
-	_isBannedUser(user){
-		if (this.state.bannedUsers.indexOf(user) === -1) {
-			return false;
-		} else {
-			return true;
-		}
+	_isBannedUser(data){
+		var res = false;
+		this.state.bannedUsers.forEach(function (user) {
+			if (user.name === name) {
+				res = true;
+				return;
+			}
+		});
+		return res;
 	},
 	_userJoined(data) {
-		var {users, messages} = this.state;
-		var {user} = data;
+		if (this.user && this._isBannedUser(data.user.name)) return;
 
-		if (this._isBannedUser(user)) return;
+		this._update(false, (res)=> {
+			var {messages} = this.state;
 
-		messages.push({
-			user: 'APPLICATION BOT',
-			text: user + ' Joined'
+			messages.push({
+				user: data.user.name,
+				text: 'Присоеденился к чату'
+			});
+
+			this.setState({messages});
 		});
-		this.setState({users, messages});
 	},
 	_userLeft(data) {
-		if (!this.state.user) return;
+		if (!this.state.user && this._isBannedUser(data.user.name)) return;
+		this._update(false, (res)=> {
 
-		var {users, messages} = this.state;
-		var {user} = data;
+			var {messages} = this.state;
 
-		if (this._isBannedUser(user)) return;
+			messages.push({
+				user: data.user.name,
+				text: 'Покинул чат'
+			});
 
-		messages.push({
-			user: 'APPLICATION BOT',
-			text: user + ' Left'
+			this.setState({messages});
 		});
-		this.setState({users, messages});
+
 	},
 	_getMessages(receiver){
 		var data = {sender: this.state.user, receiver: receiver};
@@ -252,9 +321,13 @@ var Chat = React.createClass({
 	},
 	handleMessageSubmit(message) {
 		var {messages} = this.state;
-		messages.push(message);
+		var data = {
+			user: message.user,
+			text: message.text,
+			receiver: this.props.params.receiver
+		};
+		messages.push(data);
 		this.setState({messages});
-
 		Socket.io.emit('send:message', {
 			text: message.text,
 			sender: this.state.user,
@@ -265,7 +338,6 @@ var Chat = React.createClass({
 		data.receiver = this.props.params.receiver;
 		Socket.io.emit('user:togglebanned', data, (res)=> {
 			let {bannedUsers, users, messages} = res;
-
 			this.setState({bannedUsers, users, messages});
 		});
 	},
@@ -276,8 +348,20 @@ var Chat = React.createClass({
 		this.messageField().value = appeal;
 	},
 
-	addMessageField(){
+	getUserColor(name){
+		var color = null;
 
+		this.state.users.forEach(function (user) {
+			if (user.name === name)color = user.color;
+		});
+
+		if (!color)
+			this.state.bannedUsers.forEach(function (user) {
+				if (user.name === name)color = user.color;
+			});
+
+
+		return color;
 	},
 	render () {
 		return <section className="chat">
@@ -286,14 +370,19 @@ var Chat = React.createClass({
 			  users={this.state.users}
 			  bannedUsers={this.state.bannedUsers}
 			  handleToggleBanUser={this.handleToggleBanUser}
+			  userColor={this.state.userColor}
 			/>
 
 			<MessageList
 			  updateMessageField={this.updateMessageField}
 			  messages={this.state.messages}
+			  userColor={this.state.userColor}
+			  chatColor={this.state.chatColor}
+			  getUserColor={this.getUserColor}
 			/>
 
 			<MessageForm
+			  userColor={this.state.userColor}
 			  user={this.state.user}
 			  onMessageSubmit={this.handleMessageSubmit}
 			  messageFieldId={this.state.messageFieldId}

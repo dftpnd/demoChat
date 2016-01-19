@@ -25,21 +25,36 @@ module.exports = function (socket) {
 	});
 
 	socket.on('chat:init', function (data, fn) {
+		User.updateSocket(data.user, socket.id);
+
 		var bannedUsers = User.getBannedUserList(socket.id);
 		var users = User.getList(socket.id);
-		var messages = Message.getList(User.getUser(socket.id), data.receiver, bannedUsers);
+		var messages = Message.getList(User.getUserName(socket.id), data.receiver, bannedUsers);
 
 		fn({users: users, bannedUsers: bannedUsers, messages: messages});
 
-		socket.broadcast.emit('user:join', {
-			user: data.user
-		});
+		if (data.init) {
+			socket.broadcast.emit('user:join', {
+				user: User.getUser(socket.id)
+			});
+		}
+	});
+
+	socket.on('chat:update', function (data, fn) {
+		User.updateSocket(data.user, socket.id);
+
+		var bannedUsers = User.getBannedUserList(socket.id);
+		var users = User.getList(socket.id);
+		var messages = Message.getList(User.getUserName(socket.id), data.receiver, bannedUsers);
+
+		fn({users: users, bannedUsers: bannedUsers, messages: messages});
+
 	});
 
 
 	socket.on('chat:messages', function (data, fn) {
 		var bannedUsers = User.getBannedUserList(socket.id);
-		var messages = Message.getList(User.getUser(socket.id), data.receiver, bannedUsers);
+		var messages = Message.getList(User.getUserName(socket.id), data.receiver, bannedUsers);
 
 		fn({messages: messages});
 	});
@@ -47,17 +62,15 @@ module.exports = function (socket) {
 	socket.on('user:togglebanned', function (data, fn) {
 		var bannedUsers = User.toggleBanned(socket.id, data.user, data.banned);
 		var users = User.getList(socket.id);
-		var messages = Message.getList(User.getUser(socket.id), data.receiver, bannedUsers);
+		var messages = Message.getList(User.getUserName(socket.id), data.receiver, bannedUsers);
 
 		fn({users: users, bannedUsers: bannedUsers, messages: messages});
 	});
 
 	socket.on('login', function (data, fn) {
 		if (User.claim(data.user, socket.id)) {
-			socket.name = data.user;
-
-			socket.broadcast.emit('login', {
-				user: data.user
+			socket.broadcast.emit('user:join', {
+				user: User.getUser(socket.id)
 			});
 			fn(true);
 		} else {
@@ -66,16 +79,12 @@ module.exports = function (socket) {
 	});
 
 	socket.on('logout', function (data, fn) {
-		socket.broadcast.emit('user:left', {
-			user: User.free(socket.id)
-		});
-	});
+		var user = User.getUser(socket.id);
 
-	socket.on('disconnect', function () {
-		var user = User.free(socket.id);
 		socket.broadcast.emit('user:left', {
 			user: user
 		});
-	});
 
+		User.free(socket.id);
+	});
 };
